@@ -1,70 +1,98 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
-import { toast } from 'react-hot-toast'
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 
-const Context = createContext()
+const Context = createContext();
 
 export const StateContext = ({ children }) => {
+    const [showCart, setShowCart] = useState(false);
+    const [cartItems, setCartItems] = useState([]);
+    const [totalPrice, setTotalPrice] = useState(0);
+    const [totalQuantities, setTotalQuantities] = useState(0);
+    const [qty, setQty] = useState(1);
 
-    const [showCart, setShowCart] = useState(false)
-    const [cartItems, setCartItems] = useState([])
-    const [totalPrice, setTotalPrice] = useState(0)
-    const [totalQuantities, setTotalQuantities] = useState(0)
-    const [qty, setQty] = useState(1)
-    console.log(cartItems);
-    console.log(qty);
-
-    // handlers
-    const incQty = () => {
-        setQty(prev => prev + 1)
-    }
-    const decQty = () => {
-        setQty(prev => {
-            if (prev - 1 < 1) return 1
-            return prev - 1
-        })
-    }
+    let foundProduct;
+    let index;
 
     const onAdd = (product, quantity) => {
-        const checkProductInCart = cartItems.find(item => item._id === product._id)
+        const checkProductInCart = cartItems.find((item) => item._id === product._id);
 
-        setTotalPrice(prev => prev + product.price)
-        setTotalQuantities(prev => prev + quantity)
+        setTotalPrice((prevTotalPrice) => prevTotalPrice + product.price * quantity);
+        setTotalQuantities((prevTotalQuantities) => prevTotalQuantities + quantity);
 
         if (checkProductInCart) {
-            const updatedCartItems = cartItems.map(item => {
-                if (item._id === product._id) {
-                    return {
-                        ...item,
-                        quantity: item.quantity + quantity
-                    }
+            const updatedCartItems = cartItems.map((cartProduct) => {
+                if (cartProduct._id === product._id) return {
+                    ...cartProduct,
+                    quantity: cartProduct.quantity + quantity
                 }
             })
 
-            setCartItems(updatedCartItems)
+            setCartItems(updatedCartItems);
         } else {
-            product.quantity + quantity
-            setCartItems([...cartItems, { ...product }])
+            product.quantity = quantity;
+
+            setCartItems([...cartItems, { ...product }]);
         }
 
-        toast.success(`${qty} ${product.name} added to the cart.`)
-
+        toast.success(`${qty} ${product.name} added to the cart.`);
     }
 
+    // handle remove cart item
+    const onRemove = (product) => {
+        foundProduct = cartItems.find((item) => item._id === product._id);
+        const newCartItems = cartItems.filter((item) => item._id !== product._id);
+
+        setTotalPrice((prevTotalPrice) => prevTotalPrice - foundProduct.price * foundProduct.quantity);
+        setTotalQuantities(prevTotalQuantities => prevTotalQuantities - foundProduct.quantity);
+        setCartItems(newCartItems);
+    }
+
+    // handle toggle cart item
+    const toggleCartItemQuanitity = (id, value) => {
+        foundProduct = cartItems.find((item) => item._id === id)
+        index = cartItems.findIndex((product) => product._id === id);
+        const newCartItems = cartItems.filter((item) => item._id !== id)
+
+        if (value === 'inc') {
+            setCartItems([...newCartItems, { ...foundProduct, quantity: foundProduct.quantity + 1 }]);
+            setTotalPrice((prevTotalPrice) => prevTotalPrice + foundProduct.price)
+            setTotalQuantities(prevTotalQuantities => prevTotalQuantities + 1)
+        } else if (value === 'dec') {
+            if (foundProduct.quantity > 1) {
+                setCartItems([...newCartItems, { ...foundProduct, quantity: foundProduct.quantity - 1 }]);
+                setTotalPrice((prevTotalPrice) => prevTotalPrice - foundProduct.price)
+                setTotalQuantities(prevTotalQuantities => prevTotalQuantities - 1)
+            }
+        }
+    }
+
+    // handle increment, decrement
+    const incQty = () => setQty((prevQty) => prevQty + 1);
+    const decQty = () => setQty(prev => prev - 1 <= 1 ? 1 : prev - 1)
+
+
     return (
-        <Context.Provider value={{
-            showCart,
-            cartItems,
-            totalPrice,
-            totalQuantities,
-            qty,
-            incQty,
-            decQty,
-            onAdd,
-            setShowCart
-        }}>
+        <Context.Provider
+            value={{
+                showCart,
+                setShowCart,
+                cartItems,
+                totalPrice,
+                totalQuantities,
+                qty,
+                incQty,
+                decQty,
+                onAdd,
+                toggleCartItemQuanitity,
+                onRemove,
+                setCartItems,
+                setTotalPrice,
+                setTotalQuantities
+            }}
+        >
             {children}
         </Context.Provider>
     )
 }
 
-export const useStateContext = () => useContext(Context)
+export const useStateContext = () => useContext(Context);
