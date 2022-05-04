@@ -42,7 +42,7 @@ const handler = async (req, res) => {
                         quantity: item.quantity
                     }
                 }),
-                success_url: `${req.headers.origin}/?success=true`,
+                success_url: `${req.headers.origin}/success/?success=true`,
                 cancel_url: `${req.headers.origin}/?canceled=true`,
             }
 

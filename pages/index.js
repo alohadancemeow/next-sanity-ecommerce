@@ -6,18 +6,14 @@ import { client } from '../lib/client'
 import { useNextSanityImage } from 'next-sanity-image';
 
 import {
-  Cart,
-  Footer,
   FooterBanner,
   HeroBanner,
-  Layout,
-  Navbar,
   Product,
 } from '../components'
 
 const Home = ({ productData, bannerData }) => {
-  console.log(productData);
-  console.log(bannerData);
+  // console.log(productData);
+  // console.log(bannerData);
 
   // const imageProps = useNextSanityImage(
   //   client,
